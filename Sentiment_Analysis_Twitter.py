@@ -1,98 +1,155 @@
-import signal
-import sys
-import os
-
-from google.cloud import language
-from google.api_core.exceptions import InvalidArgument
+import re
+import tweepy
+from tweepy import OAuthHandler
+from textblob import TextBlob
 import matplotlib.pyplot as plt
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="D:\Keys\FIU-CAP5771-Project-2018-54aba98e5d6c.json"
-# create a Google Cloud Natural Languague API Python client
-client = language.LanguageServiceClient()
-
-# a function which takes a block of text and returns its sentiment and magnitude
-def detect_sentiment(text):
-    """Detects sentiment in the text."""
-
-    document = language.types.Document(
-        content=text,
-        type=language.enums.Document.Type.PLAIN_TEXT)
-
-    sentiment = client.analyze_sentiment(document).document_sentiment
-
-    return sentiment.score, sentiment.magnitude
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-# keep track of count of total comments and comments with each sentiment
-count = 0
-positive_count = 0
-neutral_count = 0
-negative_count = 0
+class TwitterClient(object):
+
+    def __init__(self):
+
+        # Initialize the keys and tokens for connection
+        # keys and tokens from the Twitter Dev Console
+        tw_access_token = '983399142331502592-qJYtaJaJzxKsexP0iVureDu0CpQ9RhR'
+        tw_access_token_secret = 'ZVGmxiJ6OWfXwOKmcgYu6pi2UJNBpVTILkkm4hvc0qSpk'
+        tw_consumer_key = 'eeNHxfLx3A6j9gZVodX1mjOUP'
+        tw_consumer_secret = 'vivrEaNXC1zAyqOHG6rcDPw5axkNQynRDOU0Pd02gnkLnUmfUh'
+
+        # Authentication Process ......
+        try:
+            # Get object of OAuthHandler
+            self.auth_twitter = OAuthHandler(tw_consumer_key, tw_consumer_secret)
+            # Update access token, access token secret
+            self.auth_twitter.set_access_token(tw_access_token, tw_access_token_secret)
+            # Create tweepy API object. This is a python package to fetch tweets
+            self.twitter_api = tweepy.API(self.auth_twitter)
+            print("Successful Authentication ", self.twitter_api)
+        except:
+            print("Error: Authentication Failed")
+
+    def preProcess_tweet(self, tweet):
+
+        # Utility function to clean tweet text by removing links, special characters using simple regex statements.
+
+        return ' '.join(
+            re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])                                "
+                   "| (\w +:\ / \ / \S +)", " ", tweet).split())
+
+    def get_sentiment_twitter(self, tweet):
+
+        # Use textblob API to analyze the sentiments from the tweets. Clean the tweets and pass the tweet text
+        analysis = TextBlob(self.preProcess_tweet(tweet))
+        # Check the polarity of the sentiment and assign +ve, -ve or neutral values.
+        if analysis.sentiment.polarity > 0:
+            #print("\n Positive Polarity  ", analysis.sentiment.polarity, "  ", tweet)
+            return 'positive'
+        elif analysis.sentiment.polarity == 0:
+            #print("\n Neutral Polarity  ", analysis.sentiment.polarity, "  ", tweet)
+            return 'neutral'
+        else:
+            #print("\n Negative Polarity  ", analysis.sentiment.polarity, "  ", tweet)
+            return 'negative'
+
+    def get_online_tweets(self, query, count=10):
+
+        # Twitter Analysis Main function. Fetch online tweets realtime.
+        tweets = []
+        try:
+            # call twitter api to fetch tweets
+            fetched_tweets = self.twitter_api.search(q=query, count=count)
+            # print("Fetched Tweets ", fetched_tweets)
+            # Loop and get each tweets...
+            for tweet in fetched_tweets:
+                parsed_tweet = {}
+                parsed_tweet['text'] = tweet.text
+                parsed_tweet['sentiment'] = self.get_sentiment_twitter(tweet.text)
+                if tweet.retweet_count > 0:
+                    # Check if it's not duplicate
+                    if parsed_tweet not in tweets:
+                        tweets.append(parsed_tweet)
+                else:
+                    tweets.append(parsed_tweet)
+            return tweets
+
+        except tweepy.TweepError as e:
+            print("Error : " + str(e))
 
 
-def print_summary():
-    print()
-    print('Total comments analysed: {}'.format(count))
-    print('Positive : {} ({:.2%})'.format(positive_count, positive_count / count))
-    print('Negative : {} ({:.2%})'.format(negative_count, negative_count / count))
-    print('Neutral  : {} ({:.2%})'.format(neutral_count, neutral_count / count))
+def print_sentiment_scores(sentence):
+    analyser = SentimentIntensityAnalyzer()
+    snt = analyser.polarity_scores(sentence)
+    print("{:-<40} {}".format(sentence, str(snt)))
 
-    # Plot the Graph...
-    labels = 'Positive Comments', 'Negative Comments', 'Neutral'
-    sizes = [positive_count / count, negative_count / count,
-             neutral_count / count]
-    colors = ['gold', 'yellowgreen', 'lightcoral']
-    explode = (0, 0, 0)  # explode 1st slice
 
-    # Plot
-    plt.pie(sizes, explode=explode, labels=labels, colors=colors,
-            autopct='%1.1f%%', shadow=True, startangle=140)
-
-    plt.title("Sentiment Analysis - American Express in Facebook")
-    plt.axis('equal')
+def plot_chart(ptweets, ntweets, tot_tweets, title):               # Plot the Pie-Chart
+    labels = 'Positive Tweets', 'Negative Tweets', 'Neutral'
+    sizes = [(100 * len(ptweets) / len(tot_tweets)), (100 * len(ntweets) / len(tot_tweets)),
+             100 * ((len(tot_tweets) - len(ntweets) - len(ptweets)) / len(tot_tweets))]
+    colors = ['gold', 'yellowgreen', 'lightcoral']; explode = (0, 0, 0)  # explode 1st slice
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
+    plt.title(title); plt.axis('equal')
     plt.show()
 
 
-# register a signal handler so that we can exit early
-def signal_handler(signal, frame):
-    print('KeyboardInterrupt')
-    print_summary()
-    sys.exit(0)
+def main():
+    # TwitterClient Object
+    twitter_api = TwitterClient()
+    # Get tweets
+    tweets_by_shortname = twitter_api.get_online_tweets(query='Amex', count=1000)
+    tweets_by_fullname = twitter_api.get_online_tweets(query='American Express', count=1000)
+    tweets_by_handle = twitter_api.get_online_tweets(query='@AmericanExpress', count=1000)
+    pos_tweets, neg_tweets, neu_tweet = [0, 1, 2], [0, 1, 2], [0, 1, 2]
+    pos_tweets[0] = [tweet for tweet in tweets_by_shortname if tweet['sentiment'] == 'positive']
+    pos_tweets[1] = [tweet for tweet in tweets_by_fullname if tweet['sentiment'] == 'positive']
+    pos_tweets[2] = [tweet for tweet in tweets_by_handle if tweet['sentiment'] == 'positive']
+
+    neg_tweets[0] = [tweet for tweet in tweets_by_shortname if tweet['sentiment'] == 'negative']
+    neg_tweets[1] = [tweet for tweet in tweets_by_fullname if tweet['sentiment'] == 'negative']
+    neg_tweets[2] = [tweet for tweet in tweets_by_handle if tweet['sentiment'] == 'negative']
+
+    neu_tweet[0] = [tweet for tweet in tweets_by_handle if tweet['sentiment'] == 'neutral']
+
+    # print("Request: ", tweets)
+    # picking positive tweets from tweets
+    ptweets = pos_tweets[0] + pos_tweets[1] + pos_tweets[2]
+    tot_tweets = tweets_by_shortname + tweets_by_fullname + tweets_by_handle
+    # percentage of positive tweets
+    print("Positive tweets percentage: {} %".format(100 * len(ptweets) / len(tot_tweets)))
+    # picking negative tweets from tweets
+    ntweets = neg_tweets[0] + neg_tweets[1] + neg_tweets[2]
+    # percentage of negative tweets
+    print("Negative tweets percentage: {} %".format(100 * len(ntweets) / len(tot_tweets)))
+    # percentage of neutral tweets
+    # print("tweets: ", tweets_by_shortname); print("\n ntweets: ", ntweets); print("\n ptweets: ", ptweets)
+    print("Neutral tweets percentage: {} %".format(
+        100 * (len(tot_tweets) - len(ntweets) - len(ptweets)) / len(tot_tweets)))
+
+    # Plot the Graph...
+    plot_chart(ptweets, ntweets, tot_tweets, "Sentiment Analysis - American Express in Twitter")
 
 
-signal.signal(signal.SIGINT, signal_handler)
 
-# read our comments.txt file
-with open('comments.txt', encoding='utf-8') as f:
-    for line in f:
-        # use a try-except block since we occasionally get language not supported errors
-        try:
+    # printing first 5 positive tweets
+    '''
+    print("\n\nPositive tweets:")
+    for tweet in ptweets[:10]:
+        print(tweet['text'])
 
-            score, mag = detect_sentiment(line)
-        except InvalidArgument as e:
-            # skip the comment if we get an error
-            print('Skipped 1 comment: ', e.message)
-            continue
+    # printing first 5 negative tweets
+    print("\n\nNegative tweets:")
+    for tweet in ntweets[:10]:
+        print(tweet['text'])
 
-        # increment the total count
-        count += 1
+    # printing first 5 neutral tweets
+    print("\n\n Neutral tweets:")
+    for tweet in neu_tweet[0][:10]:
+        print(tweet['text'])
+        print_sentiment_scores(tweet['text'])
+    '''
 
-        # depending on whether the sentiment is positve, negative or neutral, increment the corresponding count
-        if score > 0:
-            positive_count += 1
-        elif score < 0:
-            negative_count += 1
-        else:
-            neutral_count += 1
 
-        # calculate the proportion of comments with each sentiment
-        positive_proportion = positive_count / count
-        neutral_proportion = neutral_count / count
-        negative_proportion = negative_count / count
-
-        print(
-            'Count: {}, Positive: {:.3f}, Neutral: {:.3f}, Negative: {:.3f}'.format(
-                count, positive_proportion, neutral_proportion, negative_proportion))
-        print(line); print("\n")
-
-print_summary()
+if __name__ == "__main__":
+    # Call the main function
+    main()
