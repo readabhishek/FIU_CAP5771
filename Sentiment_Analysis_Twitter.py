@@ -12,10 +12,10 @@ class TwitterClient(object):
 
         # Initialize the keys and tokens for connection
         # keys and tokens from the Twitter Dev Console
-        tw_access_token = '983399142331502592-qJYtaJaJzxKsexP0iVureDu0CpQ9RhR'
-        tw_access_token_secret = 'ZVGmxiJ6OWfXwOKmcgYu6pi2UJNBpVTILkkm4hvc0qSpk'
-        tw_consumer_key = 'eeNHxfLx3A6j9gZVodX1mjOUP'
-        tw_consumer_secret = 'vivrEaNXC1zAyqOHG6rcDPw5axkNQynRDOU0Pd02gnkLnUmfUh'
+        tw_access_token = 'XXXXXXXXXXXX'
+        tw_access_token_secret = 'XXXXXXXXXXXXXX'
+        tw_consumer_key = 'XXXXXXXXXXXXX'
+        tw_consumer_secret = 'XXXXXXXXXXXXX'
 
         # Authentication Process ......
         try:
