@@ -3,7 +3,7 @@ import signal
 import sys
 
 graph_api_version = 'v2.9'
-access_token = 'EAACEdEose0cBAIdZCry3GRjErOT5E4ADVdqekj7ZCWW0xIVsFbbVgNzGDKazZC5rooL6LJulF3c06dU7jikhCWOGf8SxQTBSp2OMLU8HrsT8AB3j2nKcoMCIoToMRp3SfkWrvvmMeCkEjZAbNu6DUfvPKiApE2us7e9NFXRkNPqVpxFpqtvMaNc24PQl25JqJjLcomJE1wZDZD'
+access_token = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 # LHL's Facebook user id
 user_id = '6185812851'
