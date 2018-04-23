@@ -13,10 +13,10 @@ class Load_Tweets_Batch(object):
 
         # Initialize the keys and tokens for connection
         # keys and tokens from the Twitter Dev Console
-        tw_access_token = '983399142331502592-qJYtaJaJzxKsexP0iVureDu0CpQ9RhR'
-        tw_access_token_secret = 'ZVGmxiJ6OWfXwOKmcgYu6pi2UJNBpVTILkkm4hvc0qSpk'
-        tw_consumer_key = 'eeNHxfLx3A6j9gZVodX1mjOUP'
-        tw_consumer_secret = 'vivrEaNXC1zAyqOHG6rcDPw5axkNQynRDOU0Pd02gnkLnUmfUh'
+        tw_access_token = 'wwwwwwwwwwwwwwwwwwwwwwww'
+        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_key = 'ccccccccccccccccccccccccccccccccc'
+        tw_consumer_secret = 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv'
 
         # Authentication Process ......
         try:
