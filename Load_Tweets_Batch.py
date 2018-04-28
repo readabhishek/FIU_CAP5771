@@ -13,10 +13,10 @@ class Load_Tweets_Batch(object):
 
         # Initialize the keys and tokens for connection
         # keys and tokens from the Twitter Dev Console
-        tw_access_token = 'xxxxxxxxx-xxxxxxxxxxxxxxxxx'
-        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_access_token = 'xxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxx'
+        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         # Authentication Process ......
         try:
@@ -46,10 +46,14 @@ class Load_Tweets_Batch(object):
                 #print(tweet.user.name + "   " + ((tweet.text.strip()).encode('utf-8')).decode())
         csvfile.close()
 
+
         with open(filename, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
+            print("Printing first few tweets...")
+            reader = csv.DictReader(csvfile); n=0
             for row in reader:
-                print(((row['Tweet']).encode()).decode('utf-8'))
+                if n < 10:
+                    print(((row['Tweet']).encode()).decode('utf-8'))
+                    n = n+1;
         csvfile.close()
 
 
@@ -92,8 +96,11 @@ def main(operation, query=None, filename=None, start_date=None, since_date=None,
     # TwitterClient Object
     twitter_api = Load_Tweets_Batch()
     if (operation == '2'):
-        print("Getting fresh tweets for  ", query + "  between  " + since_date + "  and  " + start_date)
-        twitter_api.get_online_tweets(query, filename, start_date, since_date)
+        query_list = query.split(',')
+        for row in query_list:
+            query_st = row.strip(' \t\n\r')
+            print("Getting fresh tweets for  ", query_st + "  between  " + since_date + "  and  " + start_date)
+            twitter_api.get_online_tweets(query_st, filename, start_date, since_date)
     elif (operation == '4'):
         purge_tweets(filename=filename, from_date = purge_date_from, to_date = purge_date_to)
         print("Purged data for ", query + " from " + purge_date_from + "  to  " + purge_date_to)
