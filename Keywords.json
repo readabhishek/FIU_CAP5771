@@ -1,0 +1,45 @@
+{
+    "1":
+        {
+          "sequence": "1",
+          "name": "American Express",
+          "shortNm": "Amex",
+          "app": "twitter",
+          "keys": "@imVkohli, @AskAmex",
+          "sentiment_title": "Sentiment Analysis - American Express in Twitter",
+          "trend_title": "Trend Analysis - American Express in Twitter",
+          "twitter_data_file": "Tweets_Amex.csv",
+          "twitter_trend_file": "Tweets_Amex_for_Trend.csv",
+          "temp_file": "Tweets_Amex_temp.csv"
+        },
+
+
+    "2":
+        {
+          "sequence": "2",
+          "name": "Chase Bank",
+          "shortNm": "Chase",
+          "app": "twitter",
+          "keys": "@Chase, @ChaseSupport",
+          "sentiment_title": "Sentiment Analysis - Chase Bank in Twitter",
+          "trend_title": "Trend Analysis - Chase Bank in Twitter",
+          "twitter_data_file": "Tweets_Chase.csv",
+          "twitter_trend_file": "Tweets_Chase_for_Trend.csv",
+          "temp_file": "Tweets_Chase_temp.csv"
+        },
+
+    "3":
+        {
+          "sequence": "3",
+          "app": "twitter",
+          "name": "Capital One",
+          "shortNm": "CapOne",
+          "keys": "@CapitalOne, @AskCapitalOne",
+          "sentiment_title": "Sentiment Analysis - Capital One in Twitter",
+          "trend_title": "Trend Analysis - Capital One in Twitter",
+          "twitter_data_file": "Tweets_CapOne.csv",
+          "twitter_trend_file": "Tweets_CapOne_for_Trend.csv",
+          "temp_file": "Tweets_CapOne_temp.csv"
+        }
+
+}
