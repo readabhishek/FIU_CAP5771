@@ -9,8 +9,6 @@ from textblob import TextBlob
 import matplotlib.pyplot as plt
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-import CAP5771.Project.Test_Codes
-
 
 class TwitterClient(object):
 
@@ -18,10 +16,10 @@ class TwitterClient(object):
 
         # Initialize the keys and tokens for connection
         # keys and tokens from the Twitter Dev Console
-        tw_access_token = 'ssssssssssssssssssssssss'
-        tw_access_token_secret = 'ddddddddddddddddddddddddddd'
+        tw_access_token = 'xxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxx'
+        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
         tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         # Authentication Process ......
         try:
@@ -38,7 +36,7 @@ class TwitterClient(object):
     def preProcess_tweet(self, tweet):
 
         # Utility function to clean tweet text by removing links, special characters using simple regex statements.
-        print(tweet)
+        #print(tweet)
         return ' '.join(
             re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])                                "
                    "| (\w +:\ / \ / \S +)", " ", tweet).split())
