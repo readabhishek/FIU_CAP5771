@@ -41,7 +41,7 @@ def collect_data_for_trendReporting(filename, filename_temp, start_date, end_dat
 
 
 # Sort data based on dates
-def display_trends(masterfile, trendfile):
+def display_trends(masterfile, trendfile, title):
     with open(masterfile, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         sortedlist = sorted(reader, key=lambda row: (row['Date']), reverse=False)
@@ -61,10 +61,8 @@ def display_trends(masterfile, trendfile):
 
     if duration < 0:
         print("Incorrect values: Start Date can't be later than To Date")
-    if duration_in_hours < 24:
-        print("Insufficient values: For trend reporting, you should have at-least 24 hrs of data")
         split_by = 'n'
-    elif duration_in_hours >= 60:
+    elif duration_in_hours >= 240:
         split_by = 'd'
     else:
         split_by = 'h'
@@ -72,13 +70,11 @@ def display_trends(masterfile, trendfile):
     split_diff = duration_in_hours / 10
     next_time_end = datetime.datetime.strptime(min_date, '%Y-%m-%d %H:%M:%S')
     split_durations.append(next_time_end)
-    print("split_diff", split_diff)
+    print("Time difference in each split: ", split_diff)
 
     for n in range(10):
         next_time_end = next_time_end + datetime.timedelta(hours=split_diff)
         split_durations.append(next_time_end)
-    for n in range(11):
-        print(str(split_durations[n]))
 
     sat = sa.TwitterClient()  # Calculate from total
     tweets = sat.analyze_sentiments(filename=masterfile, tempfile=trendfile.strip('.csv') + '_temp.csv')
@@ -103,11 +99,22 @@ def display_trends(masterfile, trendfile):
         pos_trend.append(positive_per)
         neg_trend.append(negative_per)
 
-    plt.plot(split_durations, pos_trend, color='g')
+
+    #Convert split_durations based on hours or days to limit the display
+    split_durations_simplefied = []
+    for row in split_durations:
+
+        if split_by == 'h':
+            split_durations_simplefied.append(str(row.day) + " " + str(row.hour) + ":" + str(row.minute))
+        if split_by == 'd':
+            split_durations_simplefied.append(str(row.month) + "-" + str(row.day))
+
+    plt.plot(split_durations_simplefied, pos_trend, color='g')
+    #plt.figure(figsize=(20, 10))
     #plt.axis([split_durations[0], split_durations[10], 75, 80])
     plt.xlabel('Time period')
     plt.ylabel('Positive Sentiment Trends in Percentage')
-    plt.title('Twitter Sentiments Trend for the given time period')
+    plt.title(title)
     plt.show()
 
     # Plot negative trend
