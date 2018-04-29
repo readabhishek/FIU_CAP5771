@@ -13,10 +13,10 @@ class Load_Tweets_Batch(object):
 
         # Initialize the keys and tokens for connection
         # keys and tokens from the Twitter Dev Console
-        tw_access_token = 'xxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxx'
-        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_access_token = 'xxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxx'
+        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
         # Authentication Process ......
         try:
@@ -41,8 +41,8 @@ class Load_Tweets_Batch(object):
             if not file_exists:
                 writer.writeheader()
                 print(since_date, start_date)
-            for tweet in tweepy.Cursor(self.twitter_api.search, q=query, since=since_date, until=start_date, lang="en").items():
-                writer.writerow({'Date': tweet.created_at, 'Tweet': ((tweet.text.strip()).encode('utf-8')), 'Sentiment': '', 'Score': ''})
+            for tweet in tweepy.Cursor(self.twitter_api.search, q=query, since=since_date, until=start_date, lang="en", tweet_mode='extended').items():
+                writer.writerow({'Date': tweet.created_at, 'Tweet': ((tweet.full_text.strip()).encode('utf-8')), 'Sentiment': '', 'Score': ''})
                 #print(tweet.user.name + "   " + ((tweet.text.strip()).encode('utf-8')).decode())
         csvfile.close()
 
