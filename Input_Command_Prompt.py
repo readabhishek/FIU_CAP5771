@@ -36,12 +36,16 @@ while (operation != 'E'):
 
     # For (1) Twitter: Analyze Sentiments:
     if  operation == '1' and company < (count+2):
+        print("Select a classifier for analyzing the data")
+        print(colored("Note: Default NB Analyzer and Custom NB Classifier are very slow in processing and might cause memory error in case of large datasets..", 'red'))
+        classifier = input("1) Default Pattern Analyzer   2) Default NaiveBayesAnalyzer   3) Custom NaiveBayesClassifier. \n")
+
         filename, title = companyList[int(company)]["twitter_data_file"], companyList[int(company)]["sentiment_title"]
-        Sentiment_Analysis_Twitter.main(filename=filename, title=title)
+        Sentiment_Analysis_Twitter.main(filename=filename, title=title, classifier=classifier)
     if  operation == '1' and company == (count+2):
         for n in range(count):
             filename, title = companyList[n+1]["twitter_data_file"], companyList[n+1]["sentiment_title"]
-            Sentiment_Analysis_Twitter.main(filename=filename, title=title)
+            Sentiment_Analysis_Twitter.main(filename=filename, title=title, classifier=classifier)
 
 
     # For (2) Load Tweets (On-demand)
