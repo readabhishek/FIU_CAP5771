@@ -3,11 +3,19 @@ import re
 import csv
 import json
 import datetime
+import pickle
 import tweepy
+import matplotlib.pyplot as plt
 from tweepy import OAuthHandler
 from textblob import TextBlob
-import matplotlib.pyplot as plt
+from textblob.sentiments import NaiveBayesAnalyzer
+from textblob.classifiers import NaiveBayesClassifier
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from CAP5771.Project import AuthenticationInfo
+from CAP5771.Project import PreProcess_Training_Dataset
+from CAP5771.Project import TextBlob_Classifier
+
+import CAP5771.Project.Test_Codes
 
 
 class TwitterClient(object):
@@ -15,11 +23,7 @@ class TwitterClient(object):
     def __init__(self):
 
         # Initialize the keys and tokens for connection
-        # keys and tokens from the Twitter Dev Console
-        tw_access_token = 'xxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxx'
-        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        tw_access_token,  tw_access_token_secret, tw_consumer_key, tw_consumer_secret = AuthenticationInfo.getAuthenticationInfo()
 
         # Authentication Process ......
         try:
@@ -36,17 +40,37 @@ class TwitterClient(object):
     def preProcess_tweet(self, tweet):
 
         # Utility function to clean tweet text by removing links, special characters using simple regex statements.
-        #print(tweet)
-        return ' '.join(
-            re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])                                "
+
+        string = ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])                                "
                    "| (\w +:\ / \ / \S +)", " ", tweet).split())
+        string = re.sub(r'^https?:\/\/.*[\r\n]*', '', string, flags=re.MULTILINE)     # Remove links
+        return string
 
 
 
-    def get_sentiment_twitter(self, tweet):
+    def get_sentiment_twitter(self, tweet, classifier=None):
 
         # Use textblob API to analyze the sentiments from the tweets. Clean the tweets and pass the tweet text
-        analysis = TextBlob(self.preProcess_tweet(tweet))
+        if classifier=='1':
+            analysis = TextBlob(self.preProcess_tweet(tweet))  # Default Pattern Analyzer
+
+        elif classifier=='2':
+            analysis = TextBlob(self.preProcess_tweet(tweet), analyzer=NaiveBayesAnalyzer())    # Default NB Analyzer
+
+            if analysis.sentiment.classification == 'pos':
+                polarity = (analysis.sentiment.p_pos - analysis.sentiment.p_neg)
+                return 'positive', polarity
+            elif analysis.sentiment.classification == 'neg':
+                polarity = (-1)*(analysis.sentiment.p_neg - analysis.sentiment.p_pos)
+                return 'negative', polarity
+            else:
+                return 'neutral', 0
+        elif classifier=='3':
+            nbc_classifier = TextBlob_Classifier.getnbc_classifier()                  # Restore the customed trained classifier
+            analysis = TextBlob(self.preProcess_tweet(tweet), classifier=nbc_classifier)      # Pass custome classifier
+        else:
+            analysis = TextBlob(self.preProcess_tweet(tweet))  # Default Pattern Analyzer
+
         # Check the polarity of the sentiment and assign +ve, -ve or neutral values.
         if analysis.sentiment.polarity > 0:
             # print("\n Positive Polarity  ", analysis.sentiment.polarity, "  ", tweet)
@@ -60,7 +84,7 @@ class TwitterClient(object):
 
 
 
-    def get_online_tweets(self, query, count=10):
+    def get_online_tweets(self, query, count=10, classifier=None): # Not using now. It was coded for testing
 
         # Twitter Analysis Main function. Fetch online tweets realtime.
         tweets = []
@@ -72,7 +96,7 @@ class TwitterClient(object):
             for tweet in fetched_tweets:
                 parsed_tweet = {}
                 parsed_tweet['text'] = tweet.text.encode('utf8')
-                parsed_tweet['sentiment'] = self.get_sentiment_twitter(tweet.text)
+                parsed_tweet['sentiment'] = self.get_sentiment_twitter(tweet.text, classifier=classifier)
                 if tweet.retweet_count > 0:
                     # Check if it's not duplicate
                     if parsed_tweet not in tweets:
@@ -86,7 +110,7 @@ class TwitterClient(object):
 
 
 
-    def analyze_sentiments(self, filename, tempfile):
+    def analyze_sentiments(self, filename, tempfile, classifier=None):
 
         tweets = []
         with open(tempfile, 'w', newline='') as writefile:
@@ -99,9 +123,10 @@ class TwitterClient(object):
                     parsed_tweet = {}
                     parsed_tweet['Date'] = row['Date']
                     parsed_tweet['Tweet'] = row['Tweet']
-                    parsed_tweet['Sentiment'], parsed_tweet['Score'] = self.get_sentiment_twitter(row['Tweet'])
+                    parsed_tweet['Sentiment'], parsed_tweet['Score'] = self.get_sentiment_twitter(row['Tweet'], classifier=classifier)
                     row['Sentiment'] = parsed_tweet['Sentiment']
                     row['Score'] = parsed_tweet['Score']
+                    #print(parsed_tweet)
                     writer.writerow(row)
                     tweets.append(parsed_tweet)
             readfile.close()
@@ -176,7 +201,7 @@ def calculate_sentiment_numbers(tweets, title=None):
             neutral_tweets.append(items)
 
     tot_tweets = positive_tweets + negative_tweets + neutral_tweets
-
+    print("Total Tweets legth ", len(tot_tweets))
     # percentage of positive tweets
     print("Positive tweets percentage: {} %".format(100 * len(positive_tweets) / len(tot_tweets)))
     # percentage of negative tweets
@@ -215,7 +240,7 @@ def trend_analysis (filename, start_date, end_date):
     print()
 
 
-def main(filename, title, source=None):
+def main(filename, title, source=None, classifier=None):
     # TwitterClient Object
     twitter_api = TwitterClient()
     '''
@@ -235,8 +260,21 @@ def main(filename, title, source=None):
     '''
 
     tempfile = 'temp_data.csv'
-    tweets = twitter_api.analyze_sentiments(filename, tempfile)
+
+    if classifier=='1':
+        print("Default - Pattern Analyzer passed for processing.")
+        title = title + " : Default Pattern Analyzer"
+    elif classifier=='2':
+        print("Default - Naive Bayes Analyzer passed for processing.")
+        title = title + " : Default Naive Bayes Analyzer"
+    elif classifier=='3':
+        print("Custom Classifier restored from file. Passed for analysis")
+        title = title + " : Custom NB Classifier"
+
+
+    tweets = twitter_api.analyze_sentiments(filename, tempfile, classifier=classifier)
     positive_tweets, negative_tweets, neutral_tweets = calculate_sentiment_numbers(tweets, title)
+    print("Plotting Chart")
     plot_chart(positive_tweets, negative_tweets, (positive_tweets + negative_tweets + neutral_tweets), title)
 
 if __name__ == "__main__":
