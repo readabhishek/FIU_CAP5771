@@ -89,15 +89,20 @@ def display_trends(masterfile, trendfile, title):
 
     for n in range(10):
         tweets = sat.filter_tweets_fromfile_by_date(filename=trendfile, start_date=split_durations[n], end_date=split_durations[n + 1])
-        positive_tweets, negative_tweets, neutral_tweets = sa.calculate_sentiment_numbers(tweets)
-        positive_adj_len = len(positive_tweets) + len(positive_tweets_initial)
-        negative_adj_len = len(negative_tweets) + len(negative_tweets_initial)
-        total_adj_len = positive_adj_len + negative_adj_len + len(neutral_tweets) + len(neutral_tweets_initial)
+        if not tweets:
+            pos_trend.append(positive_per_initial)
+            neg_trend.append(negative_per_initial)
 
-        positive_per = 100 * positive_adj_len / total_adj_len
-        negative_per = 100 * negative_adj_len / total_adj_len
-        pos_trend.append(positive_per)
-        neg_trend.append(negative_per)
+        else:
+            positive_tweets, negative_tweets, neutral_tweets = sa.calculate_sentiment_numbers(tweets)
+            positive_adj_len = len(positive_tweets) + len(positive_tweets_initial)
+            negative_adj_len = len(negative_tweets) + len(negative_tweets_initial)
+            total_adj_len = positive_adj_len + negative_adj_len + len(neutral_tweets) + len(neutral_tweets_initial)
+
+            positive_per = 100 * positive_adj_len / total_adj_len
+            negative_per = 100 * negative_adj_len / total_adj_len
+            pos_trend.append(positive_per)
+            neg_trend.append(negative_per)
 
 
     #Convert split_durations based on hours or days to limit the display
