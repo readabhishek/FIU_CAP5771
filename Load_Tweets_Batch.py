@@ -5,6 +5,7 @@ from builtins import print
 import tweepy
 import datetime
 from tweepy import OAuthHandler
+from CAP5771.Project import AuthenticationInfo
 
 
 class Load_Tweets_Batch(object):
@@ -12,11 +13,8 @@ class Load_Tweets_Batch(object):
     def __init__(self):
 
         # Initialize the keys and tokens for connection
-        # keys and tokens from the Twitter Dev Console
-        tw_access_token = 'xxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxx'
-        tw_access_token_secret = 'xxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        tw_consumer_secret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        # Initialize the keys and tokens for connection
+        tw_access_token, tw_access_token_secret, tw_consumer_key, tw_consumer_secret = AuthenticationInfo.getAuthenticationInfo()
 
         # Authentication Process ......
         try:
@@ -57,7 +55,7 @@ class Load_Tweets_Batch(object):
         csvfile.close()
 
 
-def purge_tweets(filename, from_date, to_date):
+def purge_tweets(filename, from_date, to_date):                           # Delete tweets from file for a particular date range
     from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d").date()
     to_date = datetime.datetime.strptime(to_date, "%Y-%m-%d").date()
 
